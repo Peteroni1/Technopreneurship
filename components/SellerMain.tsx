@@ -42,7 +42,7 @@ const SellerMain: React.FC<SellerMainProps> = ({ onNavigate }) => {
           <Text style={styles.greeting}>Hello, Aling Vicky</Text>
 
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Nothing to see here :3</Text>
+            <Text style={styles.emptyText}>Nothing to see here</Text>
 
             <Animated.View style={addButton.style}>
               <TouchableOpacity

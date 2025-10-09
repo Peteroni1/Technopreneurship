@@ -1,11 +1,19 @@
 // components/ChoiceScreen.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import Animated, {
+  Easing,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import BackButton from './BackButton';
 
 interface ChoiceScreenProps {
@@ -13,37 +21,79 @@ interface ChoiceScreenProps {
 }
 
 const ChoiceScreen: React.FC<ChoiceScreenProps> = ({ onNavigate }) => {
+  const fade = useSharedValue(0);
+  const slide = useSharedValue(50);
+  const buttonScale1 = useSharedValue(1);
+  const buttonScale2 = useSharedValue(1);
+
+  useEffect(() => {
+    fade.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.exp) });
+    slide.value = withTiming(0, { duration: 800, easing: Easing.out(Easing.exp) });
+  }, []);
+
+  const containerStyle = useAnimatedStyle(() => ({
+    opacity: fade.value,
+    transform: [{ translateY: slide.value }],
+  }));
+
+  const button1AnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale1.value }],
+  }));
+
+  const button2AnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale2.value }],
+  }));
+
+  const handlePressIn1 = () => (buttonScale1.value = withSpring(0.95));
+  const handlePressOut1 = () => (buttonScale1.value = withSpring(1));
+
+  const handlePressIn2 = () => (buttonScale2.value = withSpring(0.95));
+  const handlePressOut2 = () => (buttonScale2.value = withSpring(1));
+
   return (
     <View style={styles.container}>
       <BackButton onPress={() => onNavigate('login')} />
       
-      <Text style={styles.orText}>OR</Text>
-      
-      <View style={styles.choiceButtons}>
-        <TouchableOpacity
-          style={styles.choiceCard}
-          onPress={() => onNavigate('seller-choice')}
-        >
-          <Text style={styles.choiceTitle}>
-            Naa ba kay{'\n'}IBALIGYA,{'\n'}higala?
-          </Text>
-          <TouchableOpacity style={styles.getStartedButton}>
-            <Text style={styles.getStartedText}>Get Started!</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
+        
+        <View style={styles.choiceButtons}>
+          <Animated.View 
+            entering={FadeInDown.delay(200).duration(800)}
+            style={styles.choiceCard}
+          >
+            <Text style={styles.choiceTitle}>
+              Naa ba kay{'\n'}IBALIGYA,{'\n'}higala?
+            </Text>
+            <Animated.View style={button1AnimatedStyle}>
+              <TouchableOpacity 
+                style={styles.getStartedButton}
+                onPress={() => onNavigate('seller-choice')}
+                onPressIn={handlePressIn1}
+                onPressOut={handlePressOut1}
+              >
+                <Text style={styles.getStartedText}>Get Started!</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </Animated.View>
 
-        <TouchableOpacity
-          style={styles.choiceCard}
-          onPress={() => onNavigate('customer-choice')}
-        >
-          <Text style={styles.choiceTitle}>
-            Naa ba kay{'\n'}PALITON,{'\n'}higala?
-          </Text>
-          <TouchableOpacity style={styles.getStartedButton}>
-            <Text style={styles.getStartedText}>Get Started!</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </View>
+          <Animated.View 
+            entering={FadeInDown.delay(200).duration(800)}
+            style={styles.choiceCard}
+          >
+            <Text style={styles.choiceTitle}>
+              Naa ba kay{'\n'}PALITON,{'\n'}higala?
+            </Text>
+            <Animated.View style={button2AnimatedStyle}>
+              <TouchableOpacity 
+                style={styles.getStartedButton}
+                onPress={() => onNavigate('customer-choice')}
+                onPressIn={handlePressIn2}
+                onPressOut={handlePressOut2}
+              >
+                <Text style={styles.getStartedText}>Get Started!</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </Animated.View>
+        </View>
     </View>
   );
 };

@@ -9,74 +9,60 @@ import {
   View,
 } from 'react-native';
 
-const CustomerMain: React.FC = () => {
-  const [selectedVendor, setSelectedVendor] = useState(0);
+interface CustomerMainProps {
+  onNavigate: (screen: string, params?: any) => void;  // ← CHANGED: was 'navigation: any'
+}
 
-  const vendors = Array(5).fill({
+const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {  // ← CHANGED: was '{ navigation }'
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const vendors = Array(5).fill(null).map((_, i) => ({
+    id: i,
     name: 'Aling Vicky Eatery',
     distance: '100meters Away',
-  });
+    address: 'Bangkal Av, Dugutun Rd',
+  }));
 
-  const viands = Array(6).fill('PAKBET');
+  const handleVendorPress = (vendor: any) => {
+    onNavigate('vendor-menu', { selectedVendor: vendor });  // ← CHANGED: was 'navigation.navigate('vendor-menu', { vendor })'
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.contentRow}>
-        {/* Nearby List */}
-        <View style={styles.card}>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor="#999"
-            />
-          </View>
-
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.headerTitle}>NEARBY</Text>
-              <Text style={styles.headerSubtitle}>
-                Bangkal Av, Dugutun Rd
-              </Text>
-            </View>
-            <Text style={styles.logoText}>LOGO</Text>
-          </View>
-
-          <ScrollView style={styles.vendorList}>
-            {vendors.map((vendor, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.vendorCard}
-                onPress={() => setSelectedVendor(index)}
-              >
-                <View style={styles.vendorImage} />
-                <Text style={styles.vendorName}>{vendor.name}</Text>
-                <Text style={styles.vendorDistance}>{vendor.distance}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
 
-        {/* Menu View */}
-        <View style={styles.card}>
-          <View style={styles.menuHeader}>
-            <Text style={styles.menuTitle}>Aling Vicky Eatery</Text>
-            <Text style={styles.menuSubtitle}>Bangkal Av, Dugutun Rd</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>NEARBY</Text>
+            <Text style={styles.headerSubtitle}>Bangkal Av, Dugutun Rd</Text>
           </View>
-
-          <Text style={styles.sectionTitle}>Available Viand</Text>
-
-          <ScrollView style={styles.viandList}>
-            {viands.map((viand, index) => (
-              <View key={index} style={styles.viandCard}>
-                <Text style={styles.viandName}>{viand}</Text>
-                <Text style={styles.chevron}>›</Text>
-              </View>
-            ))}
-          </ScrollView>
+          <Text style={styles.logoText}>LOGO</Text>
         </View>
+
+        <ScrollView style={styles.vendorList}>
+          {vendors.map((vendor, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.vendorCard}
+              onPress={() => handleVendorPress(vendor)}
+            >
+              <View style={styles.vendorImage} />
+              <Text style={styles.vendorName}>{vendor.name}</Text>
+              <Text style={styles.vendorDistance}>{vendor.distance}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -84,20 +70,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#7f1d1d',
-  },
-  contentRow: {
-    flexDirection: 'row',
     padding: 20,
-    gap: 20,
-    flexWrap: 'wrap',
   },
   card: {
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
     flex: 1,
-    minWidth: 300,
-    maxHeight: 700,
+    maxWidth: 500,
+    alignSelf: 'center',
+    width: '100%',
   },
   searchContainer: {
     marginBottom: 15,
@@ -149,43 +131,6 @@ const styles = StyleSheet.create({
   },
   vendorDistance: {
     fontSize: 14,
-    color: '#6b7280',
-  },
-  menuHeader: {
-    marginBottom: 20,
-  },
-  menuTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  menuSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 15,
-  },
-  viandList: {
-    flex: 1,
-  },
-  viandCard: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  viandName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  chevron: {
-    fontSize: 24,
     color: '#6b7280',
   },
 });

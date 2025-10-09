@@ -1,6 +1,7 @@
 // components/LoginScreen.tsx
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,6 +27,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
   const slide = useSharedValue(50);
   const buttonScale = useSharedValue(1);
 
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false); // ✅ checkbox state
+
   useEffect(() => {
     fade.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.exp) });
     slide.value = withTiming(0, { duration: 800, easing: Easing.out(Easing.exp) });
@@ -43,27 +49,45 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
   const handlePressIn = () => (buttonScale.value = withSpring(0.95));
   const handlePressOut = () => (buttonScale.value = withSpring(1));
 
+  const handleLogin = () => {
+    // Check if all fields are filled
+    if (!username || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    setErrorMessage('');
+    onNavigate('customer-main');
+  };
+
   return (
     <ScrollView style={styles.container}>
       <Animated.View style={[styles.content, containerStyle]}>
-        {/* Logo with fade-in-down animation */}
+        {/* Logo */}
         <Animated.View entering={FadeInDown.duration(800)} style={styles.logo}>
-          <Text style={styles.logoText}>LOGO</Text>
+          <Image
+            source={require('@/assets/images/nigga.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </Animated.View>
 
-        <Animated.Text
-          entering={FadeInDown.delay(150).duration(800)}
-          style={styles.title}
-        >
+        <Animated.Text entering={FadeInDown.delay(150).duration(800)} style={styles.title}>
           WELCOME, HIGALA!
         </Animated.Text>
 
         {/* Login Form */}
         <Animated.View entering={FadeInDown.delay(300).duration(800)} style={styles.form}>
+
           <TextInput
             style={styles.input}
             placeholder="Username"
             placeholderTextColor="#999"
+            value={username}
+            onChangeText={(text) => {
+              setUsername(text);
+              if (errorMessage) setErrorMessage('');
+            }}
           />
 
           <TextInput
@@ -71,13 +95,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
             placeholder="Password"
             placeholderTextColor="#999"
             secureTextEntry
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errorMessage) setErrorMessage('');
+            }}
           />
 
           <View style={styles.rememberRow}>
-            <View style={styles.checkboxRow}>
-              <View style={styles.checkbox} />
+            {/* ✅ Checkbox with checkmark */}
+            <TouchableOpacity
+              style={styles.checkboxRow}
+              onPress={() => setRememberMe(!rememberMe)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, rememberMe && styles.checkboxChecked]}>
+                {rememberMe && <Text style={styles.checkmark}>✓</Text>}
+              </View>
               <Text style={styles.checkboxLabel}>Remember Me</Text>
-            </View>
+            </TouchableOpacity>
+
             <TouchableOpacity>
               <Text style={styles.forgotText}>Forgot Password?</Text>
             </TouchableOpacity>
@@ -89,7 +126,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
               onPressIn={handlePressIn}
               onPressOut={handlePressOut}
               style={styles.loginButton}
-              onPress={() => onNavigate('choice')}
+              onPress={handleLogin}
             >
               <Text style={styles.loginButtonText}>LOG IN</Text>
             </TouchableOpacity>
@@ -132,10 +169,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#d1d5db',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
+    overflow: 'hidden',
+  },
+  logoImage: {
+    width: '80%',
+    height: '80%',
   },
   logoText: {
     fontSize: 18,
@@ -176,7 +217,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#9ca3af',
     marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
+  },
+  checkboxChecked: {
+    backgroundColor: '#ffffffff',
+    borderColor: '#ffffffff',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'regular',
   },
   checkboxLabel: {
     fontSize: 14,
@@ -187,7 +239,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   loginButton: {
-    backgroundColor: '#d1d5db',
+    backgroundColor: '#ffffffff',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

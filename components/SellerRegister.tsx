@@ -1,6 +1,7 @@
 // components/SellerRegister.tsx
 import React, { useState } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,11 +18,16 @@ import Animated, {
 import BackButton from './BackButton';
 
 interface SellerRegisterProps {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
 }
 
 const SellerRegister: React.FC<SellerRegisterProps> = ({ onNavigate }) => {
   const [agreed, setAgreed] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
   const buttonScale = useSharedValue(1);
   const onPressIn = () => (buttonScale.value = withSpring(0.95));
   const onPressOut = () => (buttonScale.value = withSpring(1));
@@ -29,13 +35,34 @@ const SellerRegister: React.FC<SellerRegisterProps> = ({ onNavigate }) => {
     transform: [{ scale: buttonScale.value }],
   }));
 
+  const handleSignUp = () => {
+    // Check if all fields are filled
+    if (!firstName || !lastName || !username || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (!agreed) {
+      alert('Please agree to the Terms and Conditions');
+      return;
+    }
+
+    // Pass the user's full name to the next screen
+    const fullName = `${firstName} ${lastName}`;
+    onNavigate('seller-setup', { userName: fullName });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <BackButton onPress={() => onNavigate('choice')} />
 
       <View style={styles.content}>
         <Animated.View entering={FadeInDown.duration(700)} style={styles.logo}>
-          <Text style={styles.logoText}>LOGO</Text>
+          <Image
+            source={require('../assets/images/nigga.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </Animated.View>
 
         <Animated.Text
@@ -46,40 +73,45 @@ const SellerRegister: React.FC<SellerRegisterProps> = ({ onNavigate }) => {
         </Animated.Text>
 
         <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.form}>
-          <Animated.View entering={FadeInDown.delay(250).duration(700)} style={styles.row}>
+          <Animated.View entering={FadeInDown.delay(250).duration(700)}>
             <TextInput
-              style={[styles.input, styles.halfInput]}
+              style={styles.input}
               placeholder="First Name"
               placeholderTextColor="#999"
-            />
-            <TextInput
-              style={[styles.input, styles.halfInput]}
-              placeholder="Last Name"
-              placeholderTextColor="#999"
+              value={firstName}
+              onChangeText={setFirstName}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(300).duration(700)}>
             <TextInput
               style={styles.input}
-              placeholder="Username"
+              placeholder="Last Name"
               placeholderTextColor="#999"
+              value={lastName}
+              onChangeText={setLastName}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(350).duration(700)}>
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder="Store Name"
               placeholderTextColor="#999"
-              secureTextEntry
+              value={username}
+              onChangeText={setUsername}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(400).duration(700)}>
-            <View style={styles.input}>
-              <Text style={styles.pickerText}>Position</Text>
-            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(450).duration(700)}>
@@ -102,7 +134,7 @@ const SellerRegister: React.FC<SellerRegisterProps> = ({ onNavigate }) => {
               onPressIn={onPressIn}
               onPressOut={onPressOut}
               style={styles.signupButton}
-              onPress={() => onNavigate('seller-setup')}
+              onPress={handleSignUp}
             >
               <Text style={styles.signupButtonText}>SIGN UP</Text>
             </TouchableOpacity>
@@ -133,16 +165,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#d1d5db',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 20,
+    overflow: 'hidden',
   },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#6b7280',
+  logoImage: {
+    width: '80%',
+    height: '80%',
   },
   title: {
     fontSize: 24,
@@ -154,23 +185,11 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 15,
-  },
   input: {
     backgroundColor: '#f3f4f6',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
-    fontSize: 16,
-  },
-  halfInput: {
-    flex: 1,
-  },
-  pickerText: {
-    color: '#999',
     fontSize: 16,
   },
   checkboxRow: {
@@ -190,12 +209,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#dc2626',
-    borderColor: '#dc2626',
+    backgroundColor: '#ffffffff',
+    borderColor: '#ffffffff',
   },
   checkmark: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   checkboxLabel: {
@@ -204,7 +223,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signupButton: {
-    backgroundColor: '#d1d5db',
+    backgroundColor: '#000000ff',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

@@ -1,6 +1,7 @@
 // components/CustomerRegister.tsx
 import React, { useState } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,18 +18,34 @@ import Animated, {
 import BackButton from './BackButton';
 
 interface CustomerRegisterProps {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, params?: any) => void;
 }
 
 const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onNavigate }) => {
   const [agreed, setAgreed] = useState(false);
-
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  
   const buttonScale = useSharedValue(1);
-  const handlePressIn = () => (buttonScale.value = withSpring(0.95));
-  const handlePressOut = () => (buttonScale.value = withSpring(1));
+  const onPressIn = () => (buttonScale.value = withSpring(0.95));
+  const onPressOut = () => (buttonScale.value = withSpring(1));
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
+
+  const handleSignUp = () => {
+ 
+    if (!agreed) {
+      alert('Please agree to the Terms and Conditions');
+      return;
+    }
+
+    // Pass the user's full name to CustomerLocation
+    const fullName = `${firstName} ${lastName}`;
+    onNavigate('customer-location', { userName: fullName });
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -36,7 +53,11 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onNavigate }) => {
 
       <View style={styles.content}>
         <Animated.View entering={FadeInDown.duration(700)} style={styles.logo}>
-          <Text style={styles.logoText}>LOGO</Text>
+          <Image
+            source={require('../assets/images/nigga.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </Animated.View>
 
         <Animated.Text
@@ -46,42 +67,49 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onNavigate }) => {
           REGISTER NOW, HIGALA!
         </Animated.Text>
 
-        <Animated.View
-          entering={FadeInDown.delay(200).duration(700)}
-          style={styles.form}
-        >
-          {/* Inputs fade in with stagger */}
-          <Animated.View entering={FadeInDown.delay(250).duration(700)} style={styles.row}>
+        <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.form}>
+          <Animated.View entering={FadeInDown.delay(250).duration(700)}>
             <TextInput
-              style={[styles.input, styles.halfInput]}
+              style={styles.input}
               placeholder="First Name"
               placeholderTextColor="#999"
-            />
-            <TextInput
-              style={[styles.input, styles.halfInput]}
-              placeholder="Last Name"
-              placeholderTextColor="#999"
+              value={firstName}
+              onChangeText={setFirstName}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(300).duration(700)}>
             <TextInput
               style={styles.input}
-              placeholder="Username"
+              placeholder="Last Name"
               placeholderTextColor="#999"
+              value={lastName}
+              onChangeText={setLastName}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(350).duration(700)}>
             <TextInput
               style={styles.input}
-              placeholder="Password"
+              placeholder="Username"
               placeholderTextColor="#999"
-              secureTextEntry
+              value={username}
+              onChangeText={setUsername}
             />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(400).duration(700)}>
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </Animated.View>
+
+          <Animated.View entering={FadeInDown.delay(450).duration(700)}>
             <TouchableOpacity
               style={styles.checkboxRow}
               onPress={() => setAgreed(!agreed)}
@@ -96,22 +124,18 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onNavigate }) => {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Animated Sign Up button */}
-          <Animated.View
-            entering={FadeInDown.delay(450).duration(700)}
-            style={buttonAnimatedStyle}
-          >
+          <Animated.View entering={FadeInDown.delay(500).duration(700)} style={buttonAnimatedStyle}>
             <TouchableOpacity
-              onPressIn={handlePressIn}
-              onPressOut={handlePressOut}
+              onPressIn={onPressIn}
+              onPressOut={onPressOut}
               style={styles.signupButton}
-              onPress={() => onNavigate('customer-location')}
+              onPress={handleSignUp}
             >
               <Text style={styles.signupButtonText}>SIGN UP</Text>
             </TouchableOpacity>
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(500).duration(700)} style={styles.loginRow}>
+          <Animated.View entering={FadeInDown.delay(550).duration(700)} style={styles.loginRow}>
             <Text style={styles.loginText}>Already have an account? </Text>
             <TouchableOpacity onPress={() => onNavigate('login')}>
               <Text style={styles.loginLink}>Log In</Text>
@@ -136,16 +160,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#d1d5db',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 40,
     marginBottom: 20,
+    overflow: 'hidden',
   },
-  logoText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#6b7280',
+  logoImage: {
+    width: '80%',
+    height: '80%',
   },
   title: {
     fontSize: 24,
@@ -157,20 +180,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 15,
-  },
   input: {
     backgroundColor: '#f3f4f6',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
     fontSize: 16,
-  },
-  halfInput: {
-    flex: 1,
   },
   checkboxRow: {
     flexDirection: 'row',
@@ -189,12 +204,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#dc2626',
-    borderColor: '#dc2626',
+    backgroundColor: '#ffffffff',
+    borderColor: '#ffffffff',
   },
   checkmark: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   checkboxLabel: {
@@ -203,7 +218,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signupButton: {
-    backgroundColor: '#d1d5db',
+    backgroundColor: '#000000ff',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',

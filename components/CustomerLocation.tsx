@@ -1,5 +1,5 @@
 // components/CustomerLocation.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -8,19 +8,32 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import BackButton from './BackButton';
 
 interface CustomerLocationProps {
   onNavigate: (screen: string) => void;
 }
 
 const CustomerLocation: React.FC<CustomerLocationProps> = ({ onNavigate }) => {
+  const [addPlace, setAddPlace] = useState('');
+  const [currentLocation, setCurrentLocation] = useState('');
+
+  const handleBrowse = () => {
+    // Check if at least one field is filled
+    if (!addPlace && !currentLocation) {
+      alert('Please fill in at least one location field');
+      return;
+    }
+
+    // Navigate to customer main
+    onNavigate('customer-main');
+  };
+
   return (
     <ScrollView style={styles.container}>
+      <BackButton onPress={() => onNavigate('choice')} />
+      
       <View style={styles.content}>
-        <View style={styles.imageBox}>
-          <Text style={styles.imagePlaceholder}>✕</Text>
-        </View>
-
         <Text style={styles.title}>WHERE ARE YOU LOCATED?</Text>
 
         <View style={styles.form}>
@@ -30,6 +43,8 @@ const CustomerLocation: React.FC<CustomerLocationProps> = ({ onNavigate }) => {
               style={styles.input}
               placeholder="Add Place"
               placeholderTextColor="#999"
+              value={addPlace}
+              onChangeText={setAddPlace}
             />
           </View>
 
@@ -39,21 +54,14 @@ const CustomerLocation: React.FC<CustomerLocationProps> = ({ onNavigate }) => {
               style={styles.input}
               placeholder="Current Location"
               placeholderTextColor="#999"
+              value={currentLocation}
+              onChangeText={setCurrentLocation}
             />
           </View>
-
-          <View style={styles.inputRow}>
-            <Text style={styles.icon}>🕐</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Recent Location"
-              placeholderTextColor="#999"
-            />
-          </View>
-
+          x
           <TouchableOpacity
             style={styles.browseButton}
-            onPress={() => onNavigate('customer-main')}
+            onPress={handleBrowse}
           >
             <Text style={styles.browseButtonText}>
               Browse for carinderias nearby.
@@ -73,21 +81,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     alignItems: 'center',
-  },
-  imageBox: {
-    width: '100%',
-    maxWidth: 400,
-    height: 200,
-    backgroundColor: '#d1d5db',
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 20,
-  },
-  imagePlaceholder: {
-    fontSize: 48,
-    color: '#9ca3af',
+    paddingTop: 40,
   },
   title: {
     fontSize: 20,
@@ -103,7 +97,7 @@ const styles = StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f4f6',
+    backgroundColor: '#374151',
     padding: 15,
     borderRadius: 10,
     marginBottom: 15,
@@ -115,7 +109,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: '#e5e7eb',
   },
   browseButton: {
     backgroundColor: '#d1d5db',

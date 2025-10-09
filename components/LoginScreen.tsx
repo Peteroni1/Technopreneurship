@@ -17,6 +17,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import BackButton from './BackButton';
 
 interface LoginScreenProps {
   onNavigate: (screen: string) => void;
@@ -62,6 +63,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate }) => {
 
   return (
     <ScrollView style={styles.container}>
+      <BackButton onPress={() => onNavigate('get-started')} />
       <Animated.View style={[styles.content, containerStyle]}>
         {/* Logo */}
         <Animated.View entering={FadeInDown.duration(800)} style={styles.logo}>
@@ -226,7 +228,7 @@ const styles = StyleSheet.create({
     borderColor: '#ffffffff',
   },
   checkmark: {
-    color: '#fff',
+    color: '#000000ff',
     fontSize: 12,
     fontWeight: 'regular',
   },

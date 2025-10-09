@@ -17,7 +17,7 @@ const BackButton: React.FC<BackButtonProps> = ({ onPress }) => {
 const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
-    top: 25,
+    top: 40,
     left: 20,
     zIndex: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',

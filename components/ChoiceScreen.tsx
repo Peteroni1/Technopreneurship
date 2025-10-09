@@ -52,12 +52,11 @@ const ChoiceScreen: React.FC<ChoiceScreenProps> = ({ onNavigate }) => {
 
   return (
     <View style={styles.container}>
-      <BackButton onPress={() => onNavigate('login')} />
-      
-        
-        <View style={styles.choiceButtons}>
-          <Animated.View 
-            entering={FadeInDown.delay(200).duration(800)}
+      <BackButton onPress={() => onNavigate('get-started')} />
+
+      <View style={styles.choiceButtons}>
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(800)}
             style={styles.choiceCard}
           >
             <Text style={styles.choiceTitle}>

@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     borderColor: '#ffffffff',
   },
   checkmark: {
-    color: '#fff',
+    color: '#000000ff',
     fontSize: 11,
     fontWeight: 'bold',
   },
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   signupButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#ffffffff',
   },
   loginRow: {
     flexDirection: 'row',

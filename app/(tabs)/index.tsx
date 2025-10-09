@@ -14,7 +14,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 
 type ScreenName =
-  | 'getstarted'
+  | 'get-started'
   | 'login'
   | 'choice'
   | 'seller-choice'
@@ -34,7 +34,7 @@ interface UserData {
 }
 
 const App = () => {
-  const [currentScreen, setCurrentScreen] = useState<ScreenName>('getstarted');
+  const [currentScreen, setCurrentScreen] = useState<ScreenName>('get-started');
   const [history, setHistory] = useState<ScreenName[]>([]);
   const [userData, setUserData] = useState<UserData>({});
 
@@ -56,19 +56,21 @@ const App = () => {
   };
 
   const screens: Record<ScreenName, React.ReactElement> = {
-    'getstarted': <GetStartedScreen onNavigate={handleNavigate} />,
+    'get-started': <GetStartedScreen onNavigate={handleNavigate} />,
     'login': <LoginScreen onNavigate={handleNavigate} />,
     'choice': <ChoiceScreen onNavigate={handleNavigate} />,
     'seller-choice': <SellerRegister onNavigate={handleNavigate} />,
-    'seller-setup': <SellerSetup onNavigate={handleNavigate} userName={userData.userName} />,
-    'seller-main': <SellerMain userName={userData.userName} onBack={handleBack} />,
+  // SellerSetup component expects (userName?, onBack?) according to its file
+  'seller-setup': <SellerSetup userName={userData.userName} onBack={handleBack} />,
+  // SellerMain component expects onNavigate(screen) according to its file
+  'seller-main': <SellerMain onNavigate={handleNavigate} />,
     'customer-choice': <CustomerRegister onNavigate={handleNavigate} />,
     'customer-location': <CustomerLocation onNavigate={handleNavigate} />,
     'customer-main': <CustomerMain onNavigate={handleNavigate} />,
     'vendor-menu': <VendorMenu onNavigate={handleNavigate} onBack={handleBack} vendor={userData.selectedVendor} />
   };
 
-  const showBackButton = currentScreen !== 'getstarted';
+  const showBackButton = currentScreen !== 'get-started';
 
   return (
     <View style={{ flex: 1 }}>

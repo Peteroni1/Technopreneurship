@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   primaryButton: {
-    backgroundColor: '#000',
+    backgroundColor: '#ffffffff',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#000',
+    color: '#000000ff',
   },
   loginRow: {
     flexDirection: 'row',

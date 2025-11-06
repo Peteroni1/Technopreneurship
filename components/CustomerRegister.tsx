@@ -8,12 +8,18 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import Animated, {
   FadeInDown,
+  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import BackButton from './BackButton';
 
@@ -29,209 +35,298 @@ const CustomerRegister: React.FC<CustomerRegisterProps> = ({ onNavigate }) => {
   const [password, setPassword] = useState('');
   
   const buttonScale = useSharedValue(1);
+  const checkboxScale = useSharedValue(1);
+  
   const onPressIn = () => (buttonScale.value = withSpring(0.95));
   const onPressOut = () => (buttonScale.value = withSpring(1));
+  
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
   }));
 
+  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkboxScale.value }],
+  }));
+
+  const handleCheckboxPress = () => {
+    checkboxScale.value = withSequence(
+      withTiming(0.8, { duration: 100 }),
+      withSpring(1, { damping: 5, stiffness: 400 })
+    );
+    setAgreed(!agreed);
+  };
+
   const handleSignUp = () => {
- 
+    if (!firstName || !lastName || !username || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
     if (!agreed) {
       alert('Please agree to the Terms and Conditions');
       return;
     }
 
-    // Pass the user's full name to CustomerLocation
     const fullName = `${firstName} ${lastName}`;
     onNavigate('customer-location', { userName: fullName });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <BackButton onPress={() => onNavigate('choice')} />
-
-      <View style={styles.content}>
-        <Animated.View entering={FadeInDown.duration(700)} style={styles.logo}>
-          <Image
-            source={require('../assets/images/nigga.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </Animated.View>
-
-        <Animated.Text
-          entering={FadeInDown.delay(100).duration(700)}
-          style={styles.title}
+    <ImageBackground
+      source={require('../assets/images/HM-BG3.png')}
+      style={styles.background}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView 
+          style={styles.container}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          REGISTER NOW, HIGALA!
-        </Animated.Text>
+          <BackButton onPress={() => onNavigate('choice')} />
 
-        <Animated.View entering={FadeInDown.delay(200).duration(700)} style={styles.form}>
-          <Animated.View entering={FadeInDown.delay(250).duration(700)}>
-            <TextInput
-              style={styles.input}
-              placeholder="First Name"
-              placeholderTextColor="#999"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(300).duration(700)}>
-            <TextInput
-              style={styles.input}
-              placeholder="Last Name"
-              placeholderTextColor="#999"
-              value={lastName}
-              onChangeText={setLastName}
-            />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(350).duration(700)}>
-            <TextInput
-              style={styles.input}
-              placeholder="Username"
-              placeholderTextColor="#999"
-              value={username}
-              onChangeText={setUsername}
-            />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(400).duration(700)}>
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#999"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
-          </Animated.View>
-
-          <Animated.View entering={FadeInDown.delay(450).duration(700)}>
-            <TouchableOpacity
-              style={styles.checkboxRow}
-              onPress={() => setAgreed(!agreed)}
-              activeOpacity={0.7}
+          <View style={styles.content}>
+            <Animated.View 
+              entering={FadeInUp.duration(800).springify()} 
+              style={styles.logoContainer}
             >
-              <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-                {agreed && <Text style={styles.checkmark}>✓</Text>}
+              <View style={styles.logo}>
+                <Image
+                  source={require('../assets/images/nigga.png')}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
-              <Text style={styles.checkboxLabel}>
-                I agree to the Terms and Conditions.
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
+            </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(500).duration(700)} style={buttonAnimatedStyle}>
-            <TouchableOpacity
-              onPressIn={onPressIn}
-              onPressOut={onPressOut}
-              style={styles.signupButton}
-              onPress={handleSignUp}
+            <Animated.Text
+              entering={FadeInDown.delay(100).duration(800)}
+              style={styles.title}
             >
-              <Text style={styles.signupButtonText}>SIGN UP</Text>
-            </TouchableOpacity>
-          </Animated.View>
+              REGISTER NOW, HIGALA!
+            </Animated.Text>
 
-          <Animated.View entering={FadeInDown.delay(550).duration(700)} style={styles.loginRow}>
-            <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => onNavigate('login')}>
-              <Text style={styles.loginLink}>Log In</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </Animated.View>
-      </View>
-    </ScrollView>
+            <Animated.View 
+              entering={FadeInDown.delay(200).duration(800)} 
+              style={styles.formCard}
+            >
+              <Animated.View entering={FadeInDown.delay(300).duration(700)}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="First Name"
+                    placeholderTextColor="#999"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.delay(350).duration(700)}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Last Name"
+                    placeholderTextColor="#999"
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.delay(400).duration(700)}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Username"
+                    placeholderTextColor="#999"
+                    value={username}
+                    onChangeText={setUsername}
+                  />
+                </View>
+              </Animated.View>
+
+              <Animated.View entering={FadeInDown.delay(450).duration(700)}>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Password"
+                    placeholderTextColor="#999"
+                    secureTextEntry
+                    value={password}
+                    onChangeText={setPassword}
+                  />
+                </View>
+              </Animated.View>
+
+              <Animated.View 
+                entering={FadeInDown.delay(500).duration(700)}
+                style={checkboxAnimatedStyle}
+              >
+                <TouchableOpacity
+                  style={styles.checkboxRow}
+                  onPress={handleCheckboxPress}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
+                    {agreed && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <Text style={styles.checkboxLabel}>
+                    I agree to the Terms and Conditions.
+                  </Text>
+                </TouchableOpacity>
+              </Animated.View>
+
+              <Animated.View 
+                entering={FadeInDown.delay(550).duration(700)} 
+                style={buttonAnimatedStyle}
+              >
+                <TouchableOpacity
+                  onPressIn={onPressIn}
+                  onPressOut={onPressOut}
+                  style={styles.signupButton}
+                  onPress={handleSignUp}
+                  activeOpacity={0.9}
+                >
+                  <Text style={styles.signupButtonText}>SIGN UP</Text>
+                </TouchableOpacity>
+              </Animated.View>
+
+              <Animated.View 
+                entering={FadeInDown.delay(600).duration(700)} 
+                style={styles.loginRow}
+              >
+                <Text style={styles.loginText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => onNavigate('login')}>
+                  <Text style={styles.loginLink}>Log In</Text>
+                </TouchableOpacity>
+              </Animated.View>
+            </Animated.View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  keyboardView: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#7f1d1d',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30,
   },
   content: {
     padding: 20,
     alignItems: 'center',
   },
+  logoContainer: {
+    marginTop: 40,
+    marginBottom: 10,
+  },
   logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 20,
     overflow: 'hidden',
   },
   logoImage: {
-    width: '80%',
-    height: '80%',
+    width: '75%',
+    height: '75%',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#fff',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+    letterSpacing: 1,
     marginBottom: 30,
   },
-  form: {
+  formCard: {
     width: '100%',
     maxWidth: 400,
   },
+  inputContainer: {
+    marginBottom: 16,
+  },
   input: {
-    backgroundColor: '#f3f4f6',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
+    backgroundColor: '#f9fafb',
+    padding: 16,
+    borderRadius: 12,
     fontSize: 16,
+    borderWidth: 1.5,
+    borderColor: '#e5e7eb',
+    color: '#1f2937',
   },
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    marginTop: 8,
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 2,
     borderColor: '#9ca3af',
-    marginRight: 8,
+    marginRight: 12,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#ffffffff',
-    borderColor: '#ffffffff',
+    backgroundColor: '#000',
+    borderColor: '#000',
   },
   checkmark: {
-    color: '#000000ff',
-    fontSize: 11,
+    color: '#fff',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   checkboxLabel: {
     fontSize: 14,
     color: '#fff',
     flex: 1,
+    lineHeight: 20,
   },
   signupButton: {
-    backgroundColor: '#000000ff',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: '#000',
+    padding: 18,
+    borderRadius: 12,
     alignItems: 'center',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   signupButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffffff',
+    color: '#fff',
+    letterSpacing: 1.5,
   },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   loginText: {
     fontSize: 14,
@@ -239,8 +334,9 @@ const styles = StyleSheet.create({
   },
   loginLink: {
     fontSize: 14,
-    color: '#fff',
+    color: '#000',
     fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 

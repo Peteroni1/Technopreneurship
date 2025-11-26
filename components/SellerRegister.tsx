@@ -2,23 +2,23 @@
 import React, { useState } from 'react';
 import {
   Image,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeInUp,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withSequence,
+  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import BackButton from './BackButton';
@@ -181,7 +181,7 @@ const SellerRegister: React.FC<SellerRegisterProps> = ({ onNavigate }) => {
               </Animated.View>
 
               <Animated.View 
-                entering={FadeInDown.delay(550).duration(700)} 
+                entering={FadeInDown.delay(300).duration(200)} 
                 style={buttonAnimatedStyle}
               >
                 <TouchableOpacity

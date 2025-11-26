@@ -19,6 +19,15 @@ interface Food {
   photo?: string;
 }
 
+interface Order {
+  id: number;
+  customerName: string;
+  items: { name: string; quantity: number; price: string }[];
+  totalAmount: number;
+  status: 'pending' | 'preparing' | 'ready' | 'completed';
+  timestamp: Date;
+}
+
 interface SellerMainProps {
   userName?: string;
   onBack?: () => void;
@@ -29,8 +38,78 @@ const SellerMain = ({ userName = 'Aling Vicky', onBack }: SellerMainProps) => {
   const [foodName, setFoodName] = useState('');
   const [price, setPrice] = useState('');
   const [photo, setPhoto] = useState<string | null>(null);
-  const [foods, setFoods] = useState<Food[]>([]);
+  const [foods, setFoods] = useState<Food[]>([
+    {
+      id: 1,
+      name: 'Pakbet',
+      price: '45',
+      photo: undefined,
+    },
+    {
+      id: 2,
+      name: 'Humba',
+      price: '50',
+      photo: undefined,
+    },
+    {
+      id: 3,
+      name: 'Isda',
+      price: '50',
+      photo: undefined,
+    },
+    {
+      id: 4,
+      name: 'Ginataang Sawa',
+      price: '55',
+      photo: undefined,
+    },
+    {
+      id: 5,
+      name: 'Lechon',
+      price: '120',
+      photo: undefined,
+    },
+    {
+      id: 6,
+      name: 'Giniling',
+      price: '40',
+      photo: undefined,
+    },
+  ]);
   const [editingFood, setEditingFood] = useState<Food | null>(null);
+  const [activeTab, setActiveTab] = useState<'menu' | 'orders'>('orders');
+  const [orders, setOrders] = useState<Order[]>([
+    {
+      id: 1,
+      customerName: 'Juan Dela Cruz',
+      items: [
+        { name: 'Pakbet', quantity: 2, price: '45' },
+        { name: 'Humba', quantity: 1, price: '50' },
+      ],
+      totalAmount: 140,
+      status: 'pending',
+      timestamp: new Date(Date.now() - 5 * 60000),
+    },
+    {
+      id: 2,
+      customerName: 'Maria Santos',
+      items: [{ name: 'Lechon', quantity: 1, price: '120' }],
+      totalAmount: 120,
+      status: 'preparing',
+      timestamp: new Date(Date.now() - 15 * 60000),
+    },
+    {
+      id: 3,
+      customerName: 'Pedro Garcia',
+      items: [
+        { name: 'Giniling', quantity: 3, price: '40' },
+        { name: 'Isda', quantity: 2, price: '50' },
+      ],
+      totalAmount: 220,
+      status: 'ready',
+      timestamp: new Date(Date.now() - 30 * 60000),
+    },
+  ]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -56,48 +135,20 @@ const SellerMain = ({ userName = 'Aling Vicky', onBack }: SellerMainProps) => {
   const handleConfirm = async () => {
     if (foodName && price) {
       if (editingFood) {
-        // Update existing food
         const updatedFood = {
           ...editingFood,
           name: foodName,
           price,
           photo: photo || undefined,
         };
-        
-        // TODO: Backend Integration - Update food in database
-        // try {
-        //   await fetch(`YOUR_API_URL/foods/${editingFood.id}`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(updatedFood)
-        //   });
-        // } catch (error) {
-        //   console.error('Error updating food:', error);
-        // }
-
         setFoods(foods.map(f => f.id === editingFood.id ? updatedFood : f));
       } else {
-        // Add new food
         const newFood = { 
           name: foodName, 
           price, 
           photo: photo || undefined, 
           id: Date.now() 
         };
-        
-        // TODO: Backend Integration - Add food to database
-        // try {
-        //   const response = await fetch('YOUR_API_URL/foods', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(newFood)
-        //   });
-        //   const data = await response.json();
-        //   setFoods([...foods, data]);
-        // } catch (error) {
-        //   console.error('Error adding food:', error);
-        // }
-
         setFoods([...foods, newFood]);
       }
       
@@ -117,6 +168,44 @@ const SellerMain = ({ userName = 'Aling Vicky', onBack }: SellerMainProps) => {
     setPhoto(null);
   };
 
+  const updateOrderStatus = (orderId: number, newStatus: Order['status']) => {
+    setOrders(orders.map(order =>
+      order.id === orderId ? { ...order, status: newStatus } : order
+    ));
+  };
+
+  const getStatusColor = (status: Order['status']) => {
+    switch (status) {
+      case 'pending':
+        return '#f59e0b';
+      case 'preparing':
+        return '#3b82f6';
+      case 'ready':
+        return '#10b981';
+      case 'completed':
+        return '#6b7280';
+      default:
+        return '#9ca3af';
+    }
+  };
+
+  const getStatusLabel = (status: Order['status']) => {
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
+  const formatTime = (date: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const hours = Math.floor(diffMins / 60);
+    return `${hours}h ago`;
+  };
+
+  const pendingOrdersCount = orders.filter(o => o.status === 'pending').length;
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -131,48 +220,162 @@ const SellerMain = ({ userName = 'Aling Vicky', onBack }: SellerMainProps) => {
         </View>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => setShowAddFoodModal(true)}
+          onPress={() => {
+            setActiveTab('menu');
+            setShowAddFoodModal(true);
+          }}
         >
           <Text style={styles.addButtonText}>+ Add Food</Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {foods.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.uploadIconContainer}>
-              <Text style={styles.uploadIcon}>🍽️</Text>
-            </View>
-            <Text style={styles.emptyText}>
-              No food items yet. Click "Add Food" to get started!
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.foodList}>
-            {foods.map((food) => (
-              <View key={food.id} style={styles.foodItem}>
-                {food.photo ? (
-                  <Image source={{ uri: food.photo }} style={styles.foodImage} />
-                ) : (
-                  <View style={[styles.foodImage, styles.placeholderImage]}>
-                    <Text style={styles.placeholderText}>📷</Text>
-                  </View>
-                )}
-                <View style={styles.foodInfo}>
-                  <Text style={styles.foodName}>{food.name}</Text>
-                  <Text style={styles.foodPrice}>₱{food.price}</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.editButton}
-                  onPress={() => handleEdit(food)}
-                >
-                  <Text style={styles.editButtonText}>✏️ Edit</Text>
-                </TouchableOpacity>
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'orders' && styles.activeTab]}
+          onPress={() => setActiveTab('orders')}
+        >
+          <Text style={[styles.tabText, activeTab === 'orders' && styles.activeTabText]}>
+            📋 Orders {pendingOrdersCount > 0 && `(${pendingOrdersCount})`}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'menu' && styles.activeTab]}
+          onPress={() => setActiveTab('menu')}
+        >
+          <Text style={[styles.tabText, activeTab === 'menu' && styles.activeTabText]}>
+            🍽️ Menu
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Orders Tab */}
+      {activeTab === 'orders' && (
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {orders.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.uploadIconContainer}>
+                <Text style={styles.uploadIcon}>📦</Text>
               </View>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+              <Text style={styles.emptyText}>No orders yet</Text>
+            </View>
+          ) : (
+            <View style={styles.ordersList}>
+              {orders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  {/* Order Header */}
+                  <View style={styles.orderHeader}>
+                    <View style={styles.orderHeaderLeft}>
+                      <Text style={styles.customerName}>{order.customerName}</Text>
+                      <Text style={styles.orderTime}>{formatTime(order.timestamp)}</Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        { backgroundColor: getStatusColor(order.status) },
+                      ]}
+                    >
+                      <Text style={styles.statusText}>{getStatusLabel(order.status)}</Text>
+                    </View>
+                  </View>
+
+                  {/* Order Items */}
+                  <View style={styles.itemsContainer}>
+                    {order.items.map((item, idx) => (
+                      <View key={idx} style={styles.orderItem}>
+                        <View style={styles.itemLeft}>
+                          <Text style={styles.itemName}>{item.name}</Text>
+                          <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+                        </View>
+                        <Text style={styles.itemPrice}>₱{item.price}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Order Total */}
+                  <View style={styles.totalRow}>
+                    <Text style={styles.totalLabel}>Total:</Text>
+                    <Text style={styles.totalAmount}>₱{order.totalAmount.toFixed(2)}</Text>
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View style={styles.actionButtons}>
+                    {order.status === 'pending' && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.preparingButton]}
+                        onPress={() => updateOrderStatus(order.id, 'preparing')}
+                      >
+                        <Text style={styles.actionButtonText}>Start Preparing</Text>
+                      </TouchableOpacity>
+                    )}
+                    {order.status === 'preparing' && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.readyButton]}
+                        onPress={() => updateOrderStatus(order.id, 'ready')}
+                      >
+                        <Text style={styles.actionButtonText}>Mark Ready</Text>
+                      </TouchableOpacity>
+                    )}
+                    {order.status === 'ready' && (
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.completeButton]}
+                        onPress={() => updateOrderStatus(order.id, 'completed')}
+                      >
+                        <Text style={styles.actionButtonText}>Complete</Text>
+                      </TouchableOpacity>
+                    )}
+                    {order.status === 'completed' && (
+                      <View style={[styles.actionButton, styles.completedButton]}>
+                        <Text style={styles.actionButtonText}>✓ Completed</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Menu Tab */}
+      {activeTab === 'menu' && (
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {foods.length === 0 ? (
+            <View style={styles.emptyState}>
+              <View style={styles.uploadIconContainer}>
+                <Text style={styles.uploadIcon}>🍽️</Text>
+              </View>
+              <Text style={styles.emptyText}>
+                No food items yet. Click "Add Food" to get started!
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.foodList}>
+              {foods.map((food) => (
+                <View key={food.id} style={styles.foodItem}>
+                  {food.photo ? (
+                    <Image source={{ uri: food.photo }} style={styles.foodImage} />
+                  ) : (
+                    <View style={[styles.foodImage, styles.placeholderImage]}>
+                      <Text style={styles.placeholderText}>📷</Text>
+                    </View>
+                  )}
+                  <View style={styles.foodInfo}>
+                    <Text style={styles.foodName}>{food.name}</Text>
+                    <Text style={styles.foodPrice}>₱{food.price}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.editButton}
+                    onPress={() => handleEdit(food)}
+                  >
+                    <Text style={styles.editButtonText}>✏️ Edit</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
 
       {/* Add/Edit Food Modal */}
       <Modal
@@ -286,6 +489,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#8b2929',
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    gap: 10,
+  },
+  tab: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  activeTab: {
+    backgroundColor: '#fff',
+  },
+  tabText: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: '#7f1d1d',
+  },
   scrollView: {
     flex: 1,
   },
@@ -318,6 +545,125 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  ordersList: {
+    paddingBottom: 20,
+  },
+  orderCard: {
+    backgroundColor: '#374151',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 15,
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  orderHeaderLeft: {
+    flex: 1,
+  },
+  customerName: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  orderTime: {
+    color: '#9ca3af',
+    fontSize: 12,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  itemsContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+  orderItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  itemLeft: {
+    flex: 1,
+  },
+  itemName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  itemQuantity: {
+    color: '#d1d5db',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  itemPrice: {
+    color: '#10b981',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 12,
+  },
+  totalLabel: {
+    color: '#e5e7eb',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  totalAmount: {
+    color: '#10b981',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  preparingButton: {
+    backgroundColor: '#3b82f6',
+  },
+  readyButton: {
+    backgroundColor: '#10b981',
+  },
+  completeButton: {
+    backgroundColor: '#6b7280',
+  },
+  completedButton: {
+    backgroundColor: '#4b5563',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   foodList: {
     paddingBottom: 20,

@@ -1,6 +1,7 @@
 // components/CustomerMain.tsx
 import React, { useState } from 'react';
 import {
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,6 +17,7 @@ interface Vendor {
   address: string;
   rating?: number;
   specialty?: string;
+  image?: any;
 }
 
 interface CustomerMainProps {
@@ -33,6 +35,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'Bangkal Av, Dugutun Rd',
       rating: 4.8,
       specialty: 'Traditional Filipino',
+      image: require('../assets/images/C1.png'),
     },
     {
       id: 2,
@@ -41,6 +44,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'San Pedro St, Downtown',
       rating: 4.6,
       specialty: 'Grilled Specialties',
+      image: require('../assets/images/C2.jpeg'),
     },
     {
       id: 3,
@@ -49,6 +53,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'Catalunan Grande Ave',
       rating: 4.7,
       specialty: 'Quick Bites',
+      image: require('../assets/images/C3.jpg'),
     },
     {
       id: 4,
@@ -57,6 +62,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'Matina Aplaya, Coastal Rd',
       rating: 4.9,
       specialty: 'Catering & Bulk Orders',
+      image: require('../assets/images/C4.jpg'),
     },
     {
       id: 5,
@@ -65,6 +71,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'Ponciano St, Barangay 23-C',
       rating: 4.5,
       specialty: 'Home Cooked Meals',
+      image: require('../assets/images/C5.jpg'),
     },
     {
       id: 6,
@@ -73,6 +80,7 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
       address: 'JP Laurel Ave, Poblacion',
       rating: 4.7,
       specialty: 'Mixed Filipino Dishes',
+      image: require('../assets/images/C6.jpg'),
     },
   ];
 
@@ -120,8 +128,12 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
                 style={styles.vendorCard}
                 onPress={() => handleVendorPress(vendor)}
               >
-                {/* Vendor Image Placeholder */}
-                <View style={styles.vendorImage} />
+                {/* Vendor Image */}
+                {vendor.image ? (
+                  <Image source={vendor.image} style={styles.vendorImage} />
+                ) : (
+                  <View style={styles.vendorImagePlaceholder} />
+                )}
 
                 {/* Vendor Info */}
                 <View style={styles.vendorInfo}>
@@ -163,6 +175,33 @@ const CustomerMain: React.FC<CustomerMainProps> = ({ onNavigate }) => {
             </Text>
           </View>
         )}
+
+        {/* Navigation Bar */}
+        <View style={styles.navBar}>
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => onNavigate('customer-main')}
+          >
+            <Text style={styles.navIconActive}>🏠</Text>
+            <Text style={styles.navLabelActive}>Home</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => onNavigate('helpdesk')}
+          >
+            <Text style={styles.navIcon}>💬</Text>
+            <Text style={styles.navLabel}>Help</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.navButton}
+            onPress={() => onNavigate('profile')}
+          >
+            <Text style={styles.navIcon}>👤</Text>
+            <Text style={styles.navLabel}>Profile</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -235,6 +274,12 @@ const styles = StyleSheet.create({
     borderColor: '#e5e5e5',
   },
   vendorImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    marginRight: 0,
+  },
+  vendorImagePlaceholder: {
     width: 100,
     height: 100,
     backgroundColor: '#d1d5db',
@@ -313,6 +358,40 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     fontWeight: '500',
+  },
+  navBar: {
+    flexDirection: 'row',
+    backgroundColor: '#7f1d1d',
+    borderRadius: 15,
+    padding: 10,
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  navButton: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  navIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+    opacity: 0.6,
+  },
+  navIconActive: {
+    fontSize: 24,
+    marginBottom: 4,
+    opacity: 1,
+  },
+  navLabel: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '500',
+    opacity: 0.6,
+  },
+  navLabelActive: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    opacity: 1,
   },
 });
 

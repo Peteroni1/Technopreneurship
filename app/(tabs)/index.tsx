@@ -5,7 +5,9 @@ import CustomerLocation from '@/components/CustomerLocation';
 import CustomerMain from '@/components/CustomerMain';
 import CustomerRegister from '@/components/CustomerRegister';
 import GetStartedScreen from '@/components/GetStartedScreen';
+import HelpDesk from '@/components/HelpDesk';
 import LoginScreen from '@/components/LoginScreen';
+import ProfilePage from '@/components/ProfilePage';
 import SellerMain from '@/components/SellerMain';
 import SellerRegister from '@/components/SellerRegister';
 import SellerSetup from '@/components/SellerSetup';
@@ -23,7 +25,9 @@ type ScreenName =
   | 'customer-choice'
   | 'customer-location'
   | 'customer-main'
-  | 'vendor-menu';
+  | 'vendor-menu'
+  | 'helpdesk'
+  | 'profile';
 
 interface UserData {
   userName?: string;
@@ -60,14 +64,14 @@ const App = () => {
     'login': <LoginScreen onNavigate={handleNavigate} />,
     'choice': <ChoiceScreen onNavigate={handleNavigate} />,
     'seller-choice': <SellerRegister onNavigate={handleNavigate} />,
-  // SellerSetup component expects (userName?, onBack?) according to its file
-  'seller-setup': <SellerSetup userName={userData.userName} onBack={handleBack} />,
-  // SellerMain component expects onNavigate(screen) according to its file
-  'seller-main': <SellerMain onNavigate={handleNavigate} />,
+    'seller-setup': <SellerSetup userName={userData.userName} onBack={handleBack} />,
+    'seller-main': <SellerMain onNavigate={handleNavigate} />,
     'customer-choice': <CustomerRegister onNavigate={handleNavigate} />,
     'customer-location': <CustomerLocation onNavigate={handleNavigate} />,
     'customer-main': <CustomerMain onNavigate={handleNavigate} />,
-    'vendor-menu': <VendorMenu onNavigate={handleNavigate} onBack={handleBack} vendor={userData.selectedVendor} />
+    'vendor-menu': <VendorMenu onNavigate={handleNavigate} onBack={handleBack} vendor={userData.selectedVendor} />,
+    'helpdesk': <HelpDesk onNavigate={handleNavigate} />,
+    'profile': <ProfilePage onNavigate={handleNavigate} />
   };
 
   const showBackButton = currentScreen !== 'get-started';

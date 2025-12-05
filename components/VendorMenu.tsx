@@ -1,6 +1,8 @@
 // components/VendorMenu.tsx
 import React, { useEffect, useState } from 'react';
 import {
+  Animated,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -21,18 +23,22 @@ interface ViandItem {
   originalPrice?: number;
   discount?: number;
   description: string;
-  expiresIn?: number; // in hours
+  expiresIn?: number;
   availability?: string;
-  image?: string;
+  image: any;
 }
 
 const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [confirmationVisible, setConfirmationVisible] = useState(false);
   const [selectedViand, setSelectedViand] = useState<ViandItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [timeLeft, setTimeLeft] = useState<string>('');
+  const [paymentMode, setPaymentMode] = useState<string>('Cash');
+  const [deliveryMode, setDeliveryMode] = useState<string>('Pickup');
+  const [orderDetails, setOrderDetails] = useState<any>(null);
+  const [scaleAnim] = useState(new Animated.Value(0));
 
-  // Sample viand data with discount and expiration info
   const viands: ViandItem[] = [
     {
       name: 'PAKBET',
@@ -42,6 +48,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       description: 'Fresh mixed vegetables with shrimp paste',
       expiresIn: 1.5,
       availability: 'Only 3 left!',
+      image: require('../assets/images/V1.png'),
     },
     {
       name: 'Humba',
@@ -51,6 +58,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       description: 'Tender pork stewed in soy sauce',
       expiresIn: 2,
       availability: 'Only 5 left!',
+      image: require('../assets/images/V2.jpg'),
     },
     {
       name: 'Isda',
@@ -60,6 +68,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       description: 'Fresh grilled fish',
       expiresIn: 1.2,
       availability: 'Limited stocks',
+      image: require('../assets/images/V3.jpg'),
     },
     {
       name: 'Ginataang Sawa',
@@ -68,6 +77,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       discount: 15,
       description: 'Snake in coconut milk',
       expiresIn: 2.5,
+      image: require('../assets/images/V4.jpg'),
     },
     {
       name: 'Lechon',
@@ -77,6 +87,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       description: 'Roasted whole pig',
       expiresIn: 3,
       availability: 'Only 1 left!',
+      image: require('../assets/images/V5.jpg'),
     },
     {
       name: 'Giniling',
@@ -85,13 +96,16 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
       discount: 20,
       description: 'Ground meat with vegetables',
       expiresIn: 1.8,
+      image: require('../assets/images/V6.jpg'),
     },
   ];
+
+  const paymentModes = ['Cash', 'GCash', 'Credit Card', 'Debit Card'];
+  const deliveryModes = ['Pickup', 'Delivery'];
 
   useEffect(() => {
     if (selectedViand && modalVisible) {
       const hours = selectedViand.expiresIn || 0;
-      const totalMinutes = Math.floor(hours * 60);
       setTimeLeft(`Expires in ${Math.floor(hours)}h ${Math.floor((hours % 1) * 60)}m`);
 
       const interval = setInterval(() => {
@@ -102,18 +116,51 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
     }
   }, [selectedViand, modalVisible]);
 
+  useEffect(() => {
+    if (confirmationVisible) {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      scaleAnim.setValue(0);
+    }
+  }, [confirmationVisible]);
+
   const handleViandPress = (viand: ViandItem) => {
     setSelectedViand(viand);
     setQuantity(1);
+    setPaymentMode('Cash');
+    setDeliveryMode('Pickup');
     setModalVisible(true);
   };
 
   const handlePlaceOrder = () => {
     const total = ((selectedViand?.price || 0) * quantity).toFixed(2);
-    alert(
-      `Order Placed!\n${quantity} x ${selectedViand?.name}\nTotal: ₱${total}`
-    );
+    const details = {
+      viandName: selectedViand?.name,
+      quantity: quantity,
+      total: total,
+      payment: paymentMode,
+      delivery: deliveryMode,
+      vendor: vendor.name,
+      image: selectedViand?.image,
+    };
+    
+    setOrderDetails(details);
     setModalVisible(false);
+    
+    // Small delay for smooth transition
+    setTimeout(() => {
+      setConfirmationVisible(true);
+    }, 300);
+  };
+
+  const handleConfirmationClose = () => {
+    setConfirmationVisible(false);
+    setOrderDetails(null);
   };
 
   const incrementQuantity = () => {
@@ -157,7 +204,6 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
               style={styles.viandCard}
               onPress={() => handleViandPress(viand)}
             >
-              {/* Expiration Badge */}
               {viand.expiresIn && (
                 <View style={styles.expirationBadge}>
                   <Text style={styles.expirationText}>
@@ -166,15 +212,16 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
                 </View>
               )}
 
-              {/* Image Placeholder */}
-              <View style={styles.viandImage} />
+              <Image 
+                source={viand.image} 
+                style={styles.viandImage}
+                resizeMode="cover"
+              />
 
-              {/* Content */}
               <View style={styles.viandContent}>
                 <Text style={styles.viandName}>{viand.name}</Text>
                 <Text style={styles.viandLocation}>Aling Vicky Eatery · 100m away</Text>
 
-                {/* Price Section */}
                 <View style={styles.priceSection}>
                   <Text style={styles.currentPrice}>₱{viand.price.toFixed(2)}</Text>
                   {viand.originalPrice && (
@@ -187,12 +234,10 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
                   )}
                 </View>
 
-                {/* Availability */}
                 {viand.availability && (
                   <Text style={styles.availability}>{viand.availability}</Text>
                 )}
 
-                {/* Dots Indicator */}
                 <View style={styles.dotsContainer}>
                   {[0, 1, 2, 3, 4].map((dot) => (
                     <View
@@ -212,7 +257,7 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
         </ScrollView>
       </View>
 
-      {/* Order Modal Popup */}
+      {/* Order Details Modal */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -220,100 +265,261 @@ const VendorMenu: React.FC<VendorMenuProps> = ({ onNavigate, onBack, vendor }) =
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Expiration Badge */}
-            {selectedViand?.expiresIn && (
-              <View style={styles.modalExpirationBadge}>
-                <Text style={styles.modalExpirationText}>
-                  ⏱ Expires in {Math.floor(selectedViand.expiresIn)}h
-                </Text>
-              </View>
-            )}
-
-            {/* Close Button */}
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
+          <View style={styles.modalContainer}>
+            <ScrollView 
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
             >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-
-            {/* Viand Image Placeholder */}
-            <View style={styles.viandImageLarge} />
-
-            {/* Viand Details */}
-            <Text style={styles.modalTitle}>{selectedViand?.name}</Text>
-            <Text style={styles.modalLocation}>
-              Aling Vicky Eatery · 100m away
-            </Text>
-
-            {/* Price Section */}
-            <View style={styles.modalPriceSection}>
-              <Text style={styles.modalCurrentPrice}>
-                ₱{selectedViand?.price.toFixed(2)}
-              </Text>
-              {selectedViand?.originalPrice && (
-                <>
-                  <Text style={styles.modalOriginalPrice}>
-                    ₱{selectedViand.originalPrice.toFixed(2)}
-                  </Text>
-                  <View style={styles.modalDiscountBadge}>
-                    <Text style={styles.modalDiscountText}>
-                      {selectedViand.discount}% OFF
+              <View style={styles.modalContent}>
+                {selectedViand?.expiresIn && (
+                  <View style={styles.modalExpirationBadge}>
+                    <Text style={styles.modalExpirationText}>
+                      ⏱ Expires in {Math.floor(selectedViand.expiresIn)}h
                     </Text>
                   </View>
-                </>
-              )}
-            </View>
+                )}
 
-            {/* Description */}
-            <Text style={styles.descriptionText}>
-              {selectedViand?.description}
-            </Text>
-
-            {/* Availability */}
-            {selectedViand?.availability && (
-              <Text style={styles.availabilityWarning}>
-                🔴 {selectedViand.availability}
-              </Text>
-            )}
-
-            {/* Quantity Selector */}
-            <View style={styles.quantityContainer}>
-              <Text style={styles.quantityLabel}>Quantity:</Text>
-              <View style={styles.quantityControls}>
                 <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={decrementQuantity}
+                  style={styles.closeButton}
+                  onPress={() => setModalVisible(false)}
                 >
-                  <Text style={styles.quantityButtonText}>−</Text>
+                  <Text style={styles.closeButtonText}>✕</Text>
                 </TouchableOpacity>
-                <Text style={styles.quantityValue}>{quantity}</Text>
+
+                {selectedViand?.image && (
+                  <Image 
+                    source={selectedViand.image} 
+                    style={styles.viandImageLarge}
+                    resizeMode="cover"
+                  />
+                )}
+
+                <Text style={styles.modalTitle}>{selectedViand?.name}</Text>
+                <Text style={styles.modalLocation}>
+                  Aling Vicky Eatery · 100m away
+                </Text>
+
+                <View style={styles.modalPriceSection}>
+                  <Text style={styles.modalCurrentPrice}>
+                    ₱{selectedViand?.price.toFixed(2)}
+                  </Text>
+                  {selectedViand?.originalPrice && (
+                    <>
+                      <Text style={styles.modalOriginalPrice}>
+                        ₱{selectedViand.originalPrice.toFixed(2)}
+                      </Text>
+                      <View style={styles.modalDiscountBadge}>
+                        <Text style={styles.modalDiscountText}>
+                          {selectedViand.discount}% OFF
+                        </Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+
+                <Text style={styles.descriptionText}>
+                  {selectedViand?.description}
+                </Text>
+
+                {selectedViand?.availability && (
+                  <Text style={styles.availabilityWarning}>
+                    🔴 {selectedViand.availability}
+                  </Text>
+                )}
+
+                <View style={styles.quantityContainer}>
+                  <Text style={styles.quantityLabel}>Quantity:</Text>
+                  <View style={styles.quantityControls}>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={decrementQuantity}
+                    >
+                      <Text style={styles.quantityButtonText}>−</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.quantityValue}>{quantity}</Text>
+                    <TouchableOpacity
+                      style={styles.quantityButton}
+                      onPress={incrementQuantity}
+                    >
+                      <Text style={styles.quantityButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.modeContainer}>
+                  <Text style={styles.modeLabel}>Mode of Payment:</Text>
+                  <View style={styles.modeOptions}>
+                    {paymentModes.map((mode) => (
+                      <TouchableOpacity
+                        key={mode}
+                        style={[
+                          styles.modeButton,
+                          paymentMode === mode && styles.modeButtonActive,
+                        ]}
+                        onPress={() => setPaymentMode(mode)}
+                      >
+                        <Text
+                          style={[
+                            styles.modeButtonText,
+                            paymentMode === mode && styles.modeButtonTextActive,
+                          ]}
+                        >
+                          {mode}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.modeContainer}>
+                  <Text style={styles.modeLabel}>Mode of Delivery:</Text>
+                  <View style={styles.modeOptions}>
+                    {deliveryModes.map((mode) => (
+                      <TouchableOpacity
+                        key={mode}
+                        style={[
+                          styles.modeButton,
+                          deliveryMode === mode && styles.modeButtonActive,
+                        ]}
+                        onPress={() => setDeliveryMode(mode)}
+                      >
+                        <Text
+                          style={[
+                            styles.modeButtonText,
+                            deliveryMode === mode && styles.modeButtonTextActive,
+                          ]}
+                        >
+                          {mode}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.totalContainer}>
+                  <Text style={styles.totalLabel}>Total:</Text>
+                  <Text style={styles.totalValue}>
+                    ₱{((selectedViand?.price || 0) * quantity).toFixed(2)}
+                  </Text>
+                </View>
+
                 <TouchableOpacity
-                  style={styles.quantityButton}
-                  onPress={incrementQuantity}
+                  style={styles.quickOrderButton}
+                  onPress={handlePlaceOrder}
                 >
-                  <Text style={styles.quantityButtonText}>+</Text>
+                  <Text style={styles.quickOrderText}>Quick Order Now</Text>
                 </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Order Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={confirmationVisible}
+        onRequestClose={handleConfirmationClose}
+      >
+        <View style={styles.confirmationOverlay}>
+          <Animated.View 
+            style={[
+              styles.confirmationContainer,
+              {
+                transform: [{ scale: scaleAnim }],
+              },
+            ]}
+          >
+            {/* Success Icon */}
+            <View style={styles.successIconContainer}>
+              <View style={styles.successIcon}>
+                <Text style={styles.successCheckmark}>✓</Text>
               </View>
             </View>
 
-            {/* Total */}
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalValue}>
-                ₱{((selectedViand?.price || 0) * quantity).toFixed(2)}
-              </Text>
+            {/* Order Success Title */}
+            <Text style={styles.confirmationTitle}>Order Placed Successfully!</Text>
+            <Text style={styles.confirmationSubtitle}>
+              Your order has been confirmed.
+            </Text>
+
+            {/* Order Summary Card */}
+            <View style={styles.summaryCard}>
+              {orderDetails?.image && (
+                <Image 
+                  source={orderDetails.image} 
+                  style={styles.confirmationImage}
+                  resizeMode="cover"
+                />
+              )}
+              
+              <View style={styles.summaryDetails}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Item:</Text>
+                  <Text style={styles.summaryValue}>{orderDetails?.viandName}</Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Quantity:</Text>
+                  <Text style={styles.summaryValue}>{orderDetails?.quantity}x</Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Vendor:</Text>
+                  <Text style={styles.summaryValue}>{orderDetails?.vendor}</Text>
+                </View>
+
+                <View style={styles.summaryDivider} />
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Payment:</Text>
+                  <Text style={styles.summaryValue}>{orderDetails?.payment}</Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Delivery:</Text>
+                  <Text style={styles.summaryValue}>{orderDetails?.delivery}</Text>
+                </View>
+
+                <View style={styles.summaryDivider} />
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.totalLabelConfirmation}>Total Amount:</Text>
+                  <Text style={styles.totalValueConfirmation}>₱{orderDetails?.total}</Text>
+                </View>
+              </View>
             </View>
 
-            {/* Quick Order Now Button */}
-            <TouchableOpacity
-              style={styles.quickOrderButton}
-              onPress={handlePlaceOrder}
-            >
-              <Text style={styles.quickOrderText}>Quick Order Now</Text>
-            </TouchableOpacity>
-          </View>
+            {/* Estimated Time */}
+            <View style={styles.estimatedTimeContainer}>
+              <Text style={styles.estimatedTimeIcon}>🕐</Text>
+              <View>
+                <Text style={styles.estimatedTimeLabel}>Estimated Preparation Time</Text>
+                <Text style={styles.estimatedTimeValue}>15-20 minutes</Text>
+              </View>
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.confirmationButtons}>
+              <TouchableOpacity
+                style={styles.trackOrderButton}
+                onPress={() => {
+                  handleConfirmationClose();
+                  // Add navigation to track order screen if you have one
+                }}
+              >
+                <Text style={styles.trackOrderText}>Track Order</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={handleConfirmationClose}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
         </View>
       </Modal>
     </View>
@@ -392,7 +598,6 @@ const styles = StyleSheet.create({
   viandImage: {
     width: '100%',
     height: 140,
-    backgroundColor: '#d8d8d8',
   },
   viandContent: {
     padding: 15,
@@ -468,20 +673,24 @@ const styles = StyleSheet.create({
     color: '#ccc',
   },
 
-  // Modal Styles
+  // Order Details Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '90%',
+    width: '100%',
+  },
+  modalScrollContent: {
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 25,
     width: '100%',
-    maxWidth: 400,
     position: 'relative',
   },
   modalExpirationBadge: {
@@ -492,6 +701,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
+    zIndex: 10,
   },
   modalExpirationText: {
     color: '#fff',
@@ -516,7 +726,6 @@ const styles = StyleSheet.create({
   viandImageLarge: {
     width: '100%',
     height: 200,
-    backgroundColor: '#d8d8d8',
     borderRadius: 15,
     marginBottom: 20,
     marginTop: 10,
@@ -607,6 +816,41 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     minWidth: 30,
     textAlign: 'center',
+    color: '#000',
+  },
+  modeContainer: {
+    marginBottom: 20,
+  },
+  modeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 10,
+  },
+  modeOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  modeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#fff',
+  },
+  modeButtonActive: {
+    borderColor: '#c41e3a',
+    backgroundColor: '#c41e3a',
+  },
+  modeButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  modeButtonTextActive: {
+    color: '#fff',
   },
   totalContainer: {
     flexDirection: 'row',
@@ -636,6 +880,155 @@ const styles = StyleSheet.create({
   quickOrderText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+  // Order Confirmation Modal Styles
+  confirmationOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  confirmationContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    padding: 30,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  successIconContainer: {
+    marginBottom: 20,
+  },
+  successIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#00b050',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00b050',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  successCheckmark: {
+    fontSize: 48,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  confirmationTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  confirmationSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 25,
+    textAlign: 'center',
+  },
+  summaryCard: {
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 15,
+    overflow: 'hidden',
+    marginBottom: 20,
+  },
+  confirmationImage: {
+    width: '100%',
+    height: 120,
+  },
+  summaryDetails: {
+    padding: 15,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  summaryValue: {
+    fontSize: 14,
+    color: '#000',
+    fontWeight: '600',
+  },
+  summaryDivider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 8,
+  },
+  totalLabelConfirmation: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: '700',
+  },
+  totalValueConfirmation: {
+    fontSize: 20,
+    color: '#00b050',
+    fontWeight: 'bold',
+  },
+  estimatedTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff3cd',
+    padding: 15,
+    borderRadius: 12,
+    width: '100%',
+    marginBottom: 20,
+  },
+  estimatedTimeIcon: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  estimatedTimeLabel: {
+    fontSize: 12,
+    color: '#856404',
+    fontWeight: '500',
+  },
+  estimatedTimeValue: {
+    fontSize: 16,
+    color: '#856404',
+    fontWeight: 'bold',
+  },
+  confirmationButtons: {
+    width: '100%',
+    gap: 12,
+  },
+  trackOrderButton: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#c41e3a',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '100%',
+  },
+  trackOrderText: {
+    color: '#c41e3a',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  doneButton: {
+    backgroundColor: '#c41e3a',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '100%',
+  },
+  doneButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
